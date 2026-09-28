@@ -32,7 +32,7 @@
 
 ## 🎬 Live demo
 
-A playable demo reel of the UI is included in [`docs/index.html`](docs/index.html) and is hosted with GitHub Pages – click the link in the **About** section on the right side of this repository page.
+<a href="[https://elite-development-services.github.io/ELiTE-saloon-poker/](https://elite-development-services.github.io/EliteDeve-horse-ranch/)"> <img src="https://img.shields.io/badge/🎬%20LIVE%20DEMO-Play%20Now-8B4513?style=for-the-badge" alt="Live Demo"> </a>
 
 ## 📦 Installation
 
