@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Horse Ranch — Demo Reel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Arvo:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky-top: #a9c9d6;
+    --sky-mid: #e8c789;
+    --sun: #f5d98a;
+    --hill-far: #8a9a6a;
+    --hill-near: #5c6e3f;
+    --ground: #4a5a34;
+    --paper: #ece0c2;
+    --paper-2: #e2d4ae;
+    --ink: #2c2412;
+    --ink-dim: #6b5f42;
+    --stamp: #7a2f27;
+    --good: #4a6e2e;
+    --bad: #7a2f27;
+  }
+  :root:not([data-theme="light"]) { color-scheme: light; }
+  :root[data-theme="dark"] { color-scheme: light; }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; width: 100%; height: 100%;
+    background: var(--sky-top);
+    font-family: 'Arvo', Georgia, serif;
+    overflow: hidden;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .hidden { display: none !important; }
+  button { font-family: inherit; cursor: pointer; }
+
+  #stage { position: relative; width: 100%; height: 100%; overflow: hidden; }
+
+  /* ---------- outdoor scene ---------- */
+  .sky {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 70%, var(--sky-mid) 100%);
+  }
+  .sun {
+    position: absolute; top: 8%; right: 12%; width: 120px; height: 120px; border-radius: 50%;
+    background: radial-gradient(circle, var(--sun) 0%, rgba(245,217,138,0) 72%);
+  }
+  .hills-far {
+    position: absolute; bottom: 30%; left: 0; right: 0; height: 22%;
+    background: var(--hill-far);
+    clip-path: polygon(0 60%, 12% 40%, 28% 55%, 45% 30%, 62% 50%, 78% 35%, 100% 55%, 100% 100%, 0 100%);
+    opacity: 0.85;
+  }
+  .hills-near {
+    position: absolute; bottom: 18%; left: 0; right: 0; height: 20%;
+    background: var(--hill-near);
+    clip-path: polygon(0 70%, 15% 45%, 35% 65%, 55% 35%, 75% 60%, 100% 40%, 100% 100%, 0 100%);
+  }
+  .ground {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 20%;
+    background: linear-gradient(180deg, var(--ground) 0%, #33401f 100%);
+  }
+  .fence {
+    position: absolute; bottom: 17%; left: 0; right: 0; height: 40px;
+    background: repeating-linear-gradient(90deg, #3a2f1c 0 5px, transparent 5px 60px);
+    opacity: 0.75;
+  }
+
+  #brand {
+    position: absolute; top: 18px; right: 22px; z-index: 50;
+    font-family: 'Special Elite', serif; color: rgba(44,36,18,0.55); font-size: 13px;
+    letter-spacing: 1px; pointer-events: none;
+  }
+  #brand span { color: var(--stamp); }
+
+  /* ---------- title ---------- */
+  #titleCard {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center; padding: 24px;
+    background: rgba(236,224,194,0.94);
+    transition: opacity 600ms ease; z-index: 40;
+  }
+  #titleCard.hide { opacity: 0; pointer-events: none; }
+  #titleCard h1 {
+    font-family: 'Special Elite', serif; color: var(--ink); font-size: clamp(28px, 4.6vw, 46px);
+    margin: 0 0 8px; letter-spacing: 1px;
+  }
+  #titleCard .sub { color: var(--ink-dim); font-size: 14px; letter-spacing: 2px; margin-bottom: 30px; }
+  .btn {
+    background: var(--stamp); border: none; color: #f3e9d2; padding: 13px 26px;
+    border-radius: 2px; font-size: 15px; font-family: 'Arvo', serif;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+  }
+  .btn:hover { filter: brightness(1.1); }
+  .btn.ghost { background: transparent; border: 1px solid var(--ink-dim); color: var(--ink-dim); box-shadow: none; }
+  .btn.small { padding: 8px 16px; font-size: 13px; }
+
+  /* ---------- prompt ---------- */
+  .prompt {
+    position: absolute; top: 10%; left: 50%; transform: translateX(-50%);
+    color: var(--ink); background: rgba(236,224,194,0.9); border: 1px solid var(--ink-dim);
+    padding: 10px 20px; border-radius: 2px; font-size: 15px; opacity: 0; transition: opacity 500ms ease;
+  }
+  .prompt.show { opacity: 1; }
+  .prompt kbd { background: var(--ink); color: var(--paper); padding: 1px 7px; border-radius: 2px; font-weight: bold; }
+
+  /* ---------- ledger book (spread across bottom) ---------- */
+  .book-wrap {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    display: flex; justify-content: center;
+    opacity: 0; transform: translateY(40px); transition: opacity 550ms ease, transform 550ms ease;
+    pointer-events: none;
+  }
+  .book-wrap.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .book {
+    width: min(920px, 96vw);
+    display: grid; grid-template-columns: 1fr 1fr;
+    background: var(--paper);
+    border-radius: 6px 6px 0 0;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.35);
+    position: relative;
+    max-height: 72vh;
+  }
+  .book::before {
+    content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 2px;
+    background: rgba(0,0,0,0.15); transform: translateX(-50%); z-index: 2;
+  }
+  .page { padding: 20px 24px; overflow-y: auto; max-height: 72vh; color: var(--ink); }
+  .page-left { border-right: none; background: linear-gradient(90deg, transparent 96%, rgba(0,0,0,0.04) 100%); }
+  .page-right { background: linear-gradient(270deg, transparent 96%, rgba(0,0,0,0.04) 100%); }
+
+  .ledger-title {
+    font-family: 'Special Elite', serif; font-size: 19px; color: var(--ink);
+    border-bottom: 2px solid var(--ink); padding-bottom: 8px; margin: 0 0 14px;
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .ledger-title .bal { font-size: 13px; color: var(--stamp); font-family: 'Arvo', serif; }
+
+  .tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+  .tab {
+    flex: 1; padding: 6px; text-align: center; font-size: 11px; letter-spacing: 1px;
+    border: 1px solid var(--ink-dim); color: var(--ink-dim); border-radius: 2px;
+  }
+  .tab.active { background: var(--ink); color: var(--paper); }
+
+  .entry {
+    border-bottom: 1px dashed var(--ink-dim); padding: 10px 0; animation: fadeUp 350ms ease;
+  }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .entry .name { font-family: 'Special Elite', serif; font-size: 14px; margin-bottom: 6px; }
+  .stat-line { display: flex; align-items: center; gap: 6px; font-size: 11px; margin-bottom: 3px; }
+  .stat-line .label { width: 84px; color: var(--ink-dim); }
+  .ink-bar { flex: 1; height: 6px; background: rgba(44,36,18,0.12); position: relative; }
+  .ink-fill { height: 100%; background: var(--ink); width: 0%; transition: width 700ms ease; }
+  .entry-actions { display: flex; gap: 6px; margin-top: 8px; }
+  .entry-actions button {
+    flex: 1; padding: 5px; font-size: 11px; background: transparent; border: 1px solid var(--ink);
+    color: var(--ink); border-radius: 2px;
+  }
+  .entry-actions button:hover { background: var(--ink); color: var(--paper); }
+
+  .breed-slot {
+    padding: 10px; margin-bottom: 8px; border: 1px dashed var(--ink-dim); border-radius: 2px;
+    text-align: center; color: var(--ink-dim); font-size: 13px;
+  }
+  .breed-slot.picked { border-style: solid; border-color: var(--stamp); color: var(--stamp); }
+
+  .stamp-mark {
+    position: absolute; bottom: 12px; right: 16px; border: 2px solid var(--stamp); color: var(--stamp);
+    padding: 4px 10px; font-family: 'Special Elite', serif; font-size: 11px; letter-spacing: 1px;
+    transform: rotate(-6deg); opacity: 0; transition: opacity 300ms ease; border-radius: 3px;
+  }
+  .stamp-mark.show { opacity: 0.85; }
+
+  .toast {
+    position: absolute; top: -38px; left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: var(--paper); padding: 7px 16px; border-radius: 2px;
+    font-size: 12px; opacity: 0; transition: opacity 300ms ease; white-space: nowrap; z-index: 5;
+  }
+  .toast.show { opacity: 1; }
+  .toast.error { background: var(--bad); }
+  .toast.success { background: var(--good); }
+
+  .training-overlay {
+    position: absolute; inset: 0; background: rgba(236,224,194,0.96); display: flex;
+    align-items: center; justify-content: center; opacity: 0; pointer-events: none;
+    transition: opacity 250ms ease; z-index: 6;
+  }
+  .training-overlay.show { opacity: 1; pointer-events: auto; }
+  .training-box { text-align: center; color: var(--ink); }
+  .training-box .taps { font-size: 40px; margin: 8px 0; font-family: 'Special Elite', serif; }
+  .progress-bar { width: 220px; height: 8px; background: rgba(44,36,18,0.15); margin: 0 auto; }
+  .progress-fill { height: 100%; width: 0%; background: var(--stamp); }
+
+  /* ---------- controls ---------- */
+  #controls {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 60;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    padding: calc(14px + env(safe-area-inset-top, 0px)) 14px 14px;
+    opacity: 1; transition: opacity 600ms ease;
+  }
+  #controls.faded { opacity: 0.15; }
+  #controls.faded:hover { opacity: 1; }
+
+  @media (max-width: 640px) {
+    .book { grid-template-columns: 1fr; }
+    .book::before { display: none; }
+    .page { max-height: 34vh; }
+  }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="sky"></div>
+  <div class="sun"></div>
+  <div class="hills-far"></div>
+  <div class="hills-near"></div>
+  <div class="ground"></div>
+  <div class="fence"></div>
+
+  <div id="brand">ELITE <span>DEVELOPMENT</span></div>
+
+  <div id="titleCard">
+    <h1>Horse Ranch</h1>
+    <div class="sub">a demo reel — press play and start recording</div>
+    <div class="actions">
+      <button class="btn" id="playBtn">Play Demo</button>
+    </div>
+  </div>
+
+  <div class="prompt" id="stablePrompt">Press <kbd>E</kbd> to manage Valentine Stable Ranch</div>
+
+  <div class="book-wrap" id="bookWrap">
+    <div class="book">
+      <div class="page page-left">
+        <div class="ledger-title">Stable Ledger <span class="bal">$<span id="balance">1000</span></span></div>
+        <div class="tabs">
+          <div class="tab active" id="tab-herd">My Horses</div>
+          <div class="tab" id="tab-buy">Buy</div>
+          <div class="tab" id="tab-breed">Breed</div>
+        </div>
+        <div id="herd"></div>
+        <div id="buy" class="hidden"></div>
+        <div id="breed" class="hidden">
+          <div class="breed-slot" id="slotA">Select Parent A</div>
+          <div class="breed-slot" id="slotB">Select Parent B</div>
+          <button class="btn small" id="confirmBreed" style="width:100%;">Breed ($100)</button>
+        </div>
+        <div class="toast" id="toast"></div>
+      </div>
+      <div class="page page-right">
+        <div class="ledger-title">Notes</div>
+        <p style="font-size:12.5px; color:var(--ink-dim); line-height:1.7;">
+          Each horse carries three core traits — Speed, Stamina and Temperament — rolled when bought,
+          averaged (with variance) when bred, and improved through training. Condition drops after a
+          training session and recovers with rest.
+        </p>
+        <p style="font-size:12.5px; color:var(--ink-dim); line-height:1.7;">
+          Sell price is based on average stats. A well-trained, well-bred horse is worth considerably
+          more than a base-stock animal straight from the yard.
+        </p>
+        <div class="stamp-mark" id="stampMark">RECORDED</div>
+        <div class="training-overlay" id="training">
+          <div class="training-box">
+            <div>Training in progress…</div>
+            <div class="taps" id="taps">0</div>
+            <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="controls">
+    <button class="btn ghost small" id="restartBtn">Restart</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var timers = [];
+  function after(ms, fn){ var t = setTimeout(fn, ms); timers.push(t); return t; }
+  function clearTimers(){ timers.forEach(clearTimeout); timers = []; }
+
+  var balance = 1000, horses = {}, idSeq = 1, breedSel = { a: null, b: null };
+  var balanceEl = document.getElementById('balance');
+  var herdEl = document.getElementById('herd');
+  var buyEl = document.getElementById('buy');
+  var toast = document.getElementById('toast');
+  var stampMark = document.getElementById('stampMark');
+  var breeds = [
+    { name: 'Kentucky Saddler', price: 150 },
+    { name: 'Missouri Fox Trotter', price: 200 },
+    { name: 'Thoroughbred', price: 350 },
+    { name: 'Andalusian', price: 500 }
+  ];
+
+  function rollStat(base){
+    var v = base + (Math.floor(Math.random() * 31) - 15);
+    return Math.max(10, Math.min(100, Math.round(v)));
+  }
+  function statLine(label, value){
+    return '<div class="stat-line"><span class="label">' + label + '</span>' +
+      '<div class="ink-bar"><div class="ink-fill" style="width:' + value + '%"></div></div>' +
+      '<span>' + value + '</span></div>';
+  }
+  function renderHerd(){
+    balanceEl.textContent = balance;
+    var ids = Object.keys(horses);
+    if (!ids.length){
+      herdEl.innerHTML = '<p style="font-size:12.5px;color:var(--ink-dim);">No horses recorded yet — see the Buy page.</p>';
+    } else {
+      herdEl.innerHTML = ids.map(function(id){
+        var h = horses[id];
+        return '<div class="entry" data-id="' + id + '">' +
+          '<div class="name">' + h.name + '</div>' +
+          statLine('Speed', h.speed) + statLine('Stamina', h.stamina) + statLine('Temperament', h.temperament) + statLine('Condition', h.condition) +
+          '<div class="entry-actions">' +
+            '<button data-act="train" data-id="' + id + '">Train</button>' +
+            '<button data-act="sell" data-id="' + id + '">Sell</button>' +
+          '</div></div>';
+      }).join('');
+      herdEl.querySelectorAll('button').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var id = btn.getAttribute('data-id');
+          if (btn.getAttribute('data-act') === 'train') startTraining(id);
+          else sellHorse(id);
+        });
+      });
+    }
+    renderBreedSlots();
+  }
+  function renderBreedSlots(){
+    var slotA = document.getElementById('slotA');
+    var slotB = document.getElementById('slotB');
+    slotA.textContent = breedSel.a ? horses[breedSel.a].name : 'Select Parent A';
+    slotB.textContent = breedSel.b ? horses[breedSel.b].name : 'Select Parent B';
+    slotA.classList.toggle('picked', !!breedSel.a);
+    slotB.classList.toggle('picked', !!breedSel.b);
+  }
+  function renderBuyList(){
+    buyEl.innerHTML = breeds.map(function(b, i){
+      return '<div class="entry"><div class="name">' + b.name + ' — $' + b.price + '</div>' +
+        '<div class="entry-actions"><button data-i="' + i + '">Buy</button></div></div>';
+    }).join('');
+    buyEl.querySelectorAll('button').forEach(function(btn){
+      btn.addEventListener('click', function(){ buyHorse(parseInt(btn.getAttribute('data-i'),10)); });
+    });
+  }
+  function showToast(msg, cls){
+    toast.textContent = msg; toast.className = 'toast show ' + cls;
+    after(2200, function(){ toast.classList.remove('show'); });
+  }
+  function stampNote(){
+    stampMark.classList.add('show');
+    after(1400, function(){ stampMark.classList.remove('show'); });
+  }
+  function buyHorse(i){
+    var b = breeds[i];
+    if (balance < b.price){ showToast('Not enough cash', 'error'); return; }
+    balance -= b.price;
+    var id = 'h' + (idSeq++);
+    horses[id] = { name: b.name, speed: rollStat(50), stamina: rollStat(50), temperament: rollStat(50), condition: 100 };
+    renderHerd(); showToast('Bought a new ' + b.name + '!', 'success'); stampNote();
+    return id;
+  }
+  function startTraining(id, autoTaps){
+    var overlay = document.getElementById('training');
+    var tapsEl = document.getElementById('taps');
+    var fill = document.getElementById('progress');
+    var taps = 0, duration = 2600, start = Date.now();
+    overlay.classList.add('show'); tapsEl.textContent = '0'; fill.style.width = '0%';
+    var tapTarget = autoTaps || 45;
+    var interval = setInterval(function(){
+      var elapsed = Date.now() - start;
+      var pct = Math.min(100, (elapsed / duration) * 100);
+      fill.style.width = pct + '%';
+      taps = Math.min(tapTarget, Math.round((elapsed / duration) * tapTarget));
+      tapsEl.textContent = taps;
+      if (pct >= 100){
+        clearInterval(interval);
+        after(300, function(){ overlay.classList.remove('show'); finishTraining(id, taps); });
+      }
+    }, 60);
+  }
+  function finishTraining(id, taps){
+    var h = horses[id];
+    if (!h) return;
+    var performance = Math.min(1, taps / 40);
+    var gain = Math.floor(2 + (6 - 2) * performance);
+    var stats = ['speed','stamina','temperament'];
+    var stat = stats[Math.floor(Math.random() * stats.length)];
+    h[stat] = Math.min(100, h[stat] + gain);
+    h.condition = Math.max(0, h.condition - 15);
+    renderHerd(); showToast('Training complete! +' + gain + ' ' + stat, 'success'); stampNote();
+  }
+  function sellHorse(id){
+    var h = horses[id];
+    if (!h) return;
+    var avg = (h.speed + h.stamina + h.temperament) / 3;
+    var price = Math.floor((avg / 100) * 4 * 100);
+    delete horses[id]; balance += price;
+    renderHerd(); showToast('Sold horse for $' + price, 'success');
+  }
+  document.getElementById('confirmBreed').addEventListener('click', function(){
+    if (!breedSel.a || !breedSel.b || breedSel.a === breedSel.b) return;
+    if (balance < 100){ showToast('Not enough cash to breed', 'error'); return; }
+    balance -= 100;
+    var a = horses[breedSel.a], b = horses[breedSel.b];
+    var id = 'h' + (idSeq++);
+    horses[id] = {
+      name: a.name + ' x ' + b.name + ' Foal',
+      speed: rollStat((a.speed + b.speed) / 2),
+      stamina: rollStat((a.stamina + b.stamina) / 2),
+      temperament: rollStat((a.temperament + b.temperament) / 2),
+      condition: 100
+    };
+    breedSel = { a: null, b: null };
+    renderHerd(); showToast('A new foal was born!', 'success'); stampNote();
+  });
+
+  function setTab(tab){
+    ['herd','buy','breed'].forEach(function(t){
+      document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+      document.getElementById(t).classList.toggle('hidden', t !== tab);
+    });
+  }
+  document.getElementById('tab-herd').addEventListener('click', function(){ setTab('herd'); });
+  document.getElementById('tab-buy').addEventListener('click', function(){ setTab('buy'); renderBuyList(); });
+  document.getElementById('tab-breed').addEventListener('click', function(){ setTab('breed'); });
+  document.getElementById('slotA').addEventListener('click', function(){ cyclePick('a'); });
+  document.getElementById('slotB').addEventListener('click', function(){ cyclePick('b'); });
+  function cyclePick(slot){
+    var ids = Object.keys(horses);
+    var other = slot === 'a' ? breedSel.b : breedSel.a;
+    var candidates = ids.filter(function(id){ return id !== other; });
+    if (!candidates.length) return;
+    var cur = breedSel[slot];
+    var idx = cur ? (candidates.indexOf(cur) + 1) % candidates.length : 0;
+    breedSel[slot] = candidates[idx];
+    renderBreedSlots();
+  }
+
+  function resetUI(){
+    balance = 1000; horses = {}; idSeq = 1; breedSel = { a: null, b: null };
+    renderBuyList(); renderHerd(); setTab('herd');
+  }
+
+  function runDemo(){
+    resetUI();
+    document.getElementById('stablePrompt').classList.add('show');
+    var wrap = document.getElementById('bookWrap');
+    after(1500, function(){
+      document.getElementById('stablePrompt').classList.remove('show');
+      wrap.classList.add('show');
+    });
+    var id1, id2;
+    after(2300, function(){ setTab('buy'); renderBuyList(); });
+    after(3100, function(){ id1 = buyHorse(2); });
+    after(4300, function(){ setTab('herd'); });
+    after(5100, function(){ startTraining(id1, 46); });
+    after(8500, function(){ setTab('buy'); });
+    after(9300, function(){ id2 = buyHorse(0); });
+    after(10500, function(){ setTab('breed'); });
+    after(11300, function(){ breedSel.a = id1; breedSel.b = id2; renderBreedSlots(); });
+    after(12300, function(){ document.getElementById('confirmBreed').click(); });
+    after(13500, function(){ setTab('herd'); });
+  }
+
+  document.getElementById('playBtn').addEventListener('click', function(){
+    document.getElementById('titleCard').classList.add('hide');
+    document.getElementById('controls').classList.add('faded');
+    runDemo();
+  });
+  document.getElementById('restartBtn').addEventListener('click', function(){
+    clearTimers();
+    document.getElementById('bookWrap').classList.remove('show');
+    document.getElementById('stablePrompt').classList.remove('show');
+    document.getElementById('controls').classList.remove('faded');
+    document.getElementById('titleCard').classList.remove('hide');
+  });
+})();
+</script>
+</body>
+</html>

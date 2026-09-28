@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Horse Ranch</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app" class="hidden">
+  <div class="ranch-panel">
+    <div class="header">
+      <h1>Stable Ledger</h1>
+      <div class="balance">Cash: $<span id="balance">0</span></div>
+      <button id="closeBtn" class="close-btn">✕</button>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="herd">My Horses</button>
+      <button class="tab-btn" data-tab="buy">Buy</button>
+      <button class="tab-btn" data-tab="breed">Breed</button>
+    </div>
+
+    <div id="herdTab" class="tab-content">
+      <div id="horseList" class="horse-list"></div>
+    </div>
+
+    <div id="buyTab" class="tab-content hidden">
+      <div id="breedList" class="horse-list"></div>
+    </div>
+
+    <div id="breedTab" class="tab-content hidden">
+      <p class="hint">Select two horses you own to breed:</p>
+      <div id="breedSelectA" class="breed-slot">Select Parent A</div>
+      <div id="breedSelectB" class="breed-slot">Select Parent B</div>
+      <button id="confirmBreed">Breed ($100)</button>
+    </div>
+
+    <div id="trainingOverlay" class="training-overlay hidden">
+      <div class="training-box">
+        <div>Work the horse! Tap the training key repeatedly!</div>
+        <div id="tapCount">0</div>
+        <div class="progress-bar"><div id="progressFill"></div></div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+    <div class="dev-credit">Elite Development</div>
+  </div>
+</div>
+<script src="script.js"></script>
+</body>
+</html>
